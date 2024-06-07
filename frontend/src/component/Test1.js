@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import io from 'socket.io-client';
 import './Test1.css';
-
 let socket;
 let result = null;
 
@@ -14,10 +13,11 @@ const Tast1 = () => {
     const [dissableSourceOption, setdissableSourceOption] = useState(false);
     const [dissableTargetOption, setdissableTargetOption] = useState(false);
 
-    const { transcript, interimTranscript, browserSupportsSpeechRecognition, resetTranscript } = useSpeechRecognition({ continuous: true, language: language });
+    let { finalTranscript, transcript, interimTranscript, browserSupportsSpeechRecognition, resetTranscript }
+        = useSpeechRecognition({ continuous: true, language: language });
 
     const [chunks, setChunks] = useState('');
-    const [answer, setanswer] = useState('');
+    let [answer, setanswer] = useState('');
     const arr = useRef([]);
 
     function numberOfWords(str) {
@@ -30,12 +30,12 @@ const Tast1 = () => {
         setdissableSourceOption(true);
         setdissableTargetOption(true);
         setbutton("Stop");
-    }
+    };
 
     const stopListening = () => {
         SpeechRecognition.stopListening();
         setbutton("Start");
-    }
+    };
 
     useEffect(() => {
         if (interimTranscript) {
@@ -44,15 +44,15 @@ const Tast1 = () => {
     }, [interimTranscript]);
 
     async function solveAnswer() {
-        if (socket && chunks && result === null && arr.current.length !== 0) {
+        if (socket && chunks && result === null && arr.current?.length !== 0) {
             result = "pending";
-            const chunk = chunks;
+            let chunk = chunks;
             setChunks('');
-            const textData = arr.current[0];
-            console.log("Sending data to backend:", textData); // Added log
-            await socket.emit("sendToBackend", { chunk: textData, sourceLanguage, targetLanguage }, (data) => {
-                console.log("Received data from backend:", data); // Added log
-                setanswer(data.replace(/'/g, ''));
+            let textData = arr.current?.[0];
+            await socket.emit("sendToBackend", { chunk: textData, sourceLanguage: sourceLanguage, targetLanguage: targetLanguage }, (data) => {
+                let s = data;
+                let outputString = s.replace(/'/g, '');
+                setanswer(outputString);
                 result = null;
                 arr.current.shift();
                 solveAnswer();
@@ -61,30 +61,28 @@ const Tast1 = () => {
     }
 
     useEffect(() => {
-        const interval = setTimeout(() => {
-            if (transcript.length !== 0 && numberOfWords(transcript) > 1) {
+        let interval = setTimeout(() => {
+            if (transcript?.length !== 0 && numberOfWords(transcript) > 1) {
                 arr.current.push(transcript);
             }
             solveAnswer();
         }, 500);
-        return () => clearInterval(interval);
+        return () => {
+            clearInterval(interval);
+        };
     }, [transcript]);
 
     const initializeSocket = useCallback(() => {
         if (!socket) {
-            socket = io('https://speech-to-text-ijrl.vercel.app', {
-                transports: ['websocket'],
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000,
+            socket = io('https://8ed9-110-235-236-237.ngrok-free.app', {
+                transports: ['websocket', 'polling'],
+                path: '/api/socket.io'  // Ensure this matches the path in your backend
             });
             socket.on('connect', () => {
                 console.log("Connected to backend");
             });
             socket.on('disconnect', () => {
                 console.log("Disconnected from backend");
-            });
-            socket.on('connect_error', (error) => {
-                console.error("Connection error:", error);
             });
         }
     }, []);
@@ -104,15 +102,32 @@ const Tast1 = () => {
     }
 
     const sourcelanguageChange = (e) => {
-        const value = e.target.value;
-        setLanguage(`${value}-IN`);
-        setsourceLanguage(value === 'en' ? 'English' : value === 'hi' ? 'Hindi' : 'Bengali');
-    }
+        let value = e.target.value;
+        let s = `${value}-IN`;
+        setLanguage(s);
+        if (value === "en") {
+            setsourceLanguage('English');
+        } else if (value === "hi") {
+            setsourceLanguage('Hindi');
+        } else if (value === "bn") {
+            setsourceLanguage('Bengali');
+        } else if (value === "te") {
+            setsourceLanguage('Telegu');
+        }
+    };
 
     const targetlanguageChange = (e) => {
-        const value = e.target.value;
-        settargetLanguage(value === 'en' ? 'English' : value === 'hi' ? 'Hindi' : 'Bengali');
-    }
+        let value = e.target.value;
+        if (value === "en") {
+            settargetLanguage('English');
+        } else if (value === "hi") {
+            settargetLanguage('Hindi');
+        } else if (value === "bn") {
+            settargetLanguage('Bengali');
+        } else if (value === "te") {
+            settargetLanguage('Telegu');
+        }
+    };
 
     const clear = () => {
         stopListening();
@@ -122,14 +137,18 @@ const Tast1 = () => {
         arr.current = [];
         setdissableSourceOption(false);
         setdissableTargetOption(false);
-    }
+    };
 
     return (
         <div className="container">
             <h2>Speech to Text Converter</h2>
             <div className="btn-style">
-                <button onClick={button === "Start" ? startListening : stopListening}>{button}</button>
-                <button onClick={clear}>Clear</button>
+                {button === "Start" ? (
+                    <button onClick={startListening}>{button}</button>
+                ) : (
+                    <button onClick={stopListening}>{button}</button>
+                )}
+                <button onClick={clear}>clear</button>
             </div>
             <div className="selectform">
                 <div>
@@ -143,9 +162,9 @@ const Tast1 = () => {
                 <div>
                     <label>Target Language</label>
                     <select onChange={targetlanguageChange} disabled={dissableTargetOption}>
-                        <option value='en'>English</option>
                         <option value='hi'>Hindi</option>
                         <option value='bn'>Bengali</option>
+                        <option value='en'>English</option>
                     </select>
                 </div>
             </div>
