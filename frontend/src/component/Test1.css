@@ -1,0 +1,6 @@
+.selectform{
+    margin: 30px;
+    display: flex;
+    justify-content: space-around;
+    flex-direction: row;
+}
