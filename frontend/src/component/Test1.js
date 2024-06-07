@@ -1,49 +1,40 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import io from 'socket.io-client';
-import './Test1.css'
+import './Test1.css';
+
 let socket;
-let result = null
+let result = null;
 
 const Tast1 = () => {
     const [language, setLanguage] = useState('en-IN');
-    const [sourceLanguage, setsourceLanguage] = useState('English')
-    const [targetLanguage, settargetLanguage] = useState('Hindi')
+    const [sourceLanguage, setsourceLanguage] = useState('English');
+    const [targetLanguage, settargetLanguage] = useState('Hindi');
+    const [button, setbutton] = useState("Start");
+    const [dissableSourceOption, setdissableSourceOption] = useState(false);
+    const [dissableTargetOption, setdissableTargetOption] = useState(false);
 
-    const [button, setbutton] = useState("Start")
-
-    const [dissableSourceOption, setdissableSourceOption] = useState(false)
-    const [dissableTargetOption, setdissableTargetOption] = useState(false)
-
-    let { finalTranscript, transcript, interimTranscript, browserSupportsSpeechRecognition, resetTranscript }
-        = useSpeechRecognition({ continuous: true, language: language });
-
-    // console.log("useSpeechRecognition(); is ", useSpeechRecognition())
+    const { transcript, interimTranscript, browserSupportsSpeechRecognition, resetTranscript } = useSpeechRecognition({ continuous: true, language: language });
 
     const [chunks, setChunks] = useState('');
-    let [answer, setanswer] = useState('');
+    const [answer, setanswer] = useState('');
     const arr = useRef([]);
 
     function numberOfWords(str) {
         const words = str.match(/\S+/g);
-        if (words.length !== 0) {
-            return words.length;
-        }
-        else {
-            return 0;
-        }
+        return words ? words.length : 0;
     }
 
     const startListening = () => {
         SpeechRecognition.startListening({ continuous: true, language: language });
-        setdissableSourceOption(true)
-        setdissableTargetOption(true)
-        setbutton("Stop")
+        setdissableSourceOption(true);
+        setdissableTargetOption(true);
+        setbutton("Stop");
     }
 
     const stopListening = () => {
         SpeechRecognition.stopListening();
-        setbutton("Start")
+        setbutton("Start");
     }
 
     useEffect(() => {
@@ -53,47 +44,35 @@ const Tast1 = () => {
     }, [interimTranscript]);
 
     async function solveAnswer() {
-        if (socket && chunks && result === null && arr.current?.length !== 0) {
-            result = "pending"
-            let chunk = chunks
+        if (socket && chunks && result === null && arr.current.length !== 0) {
+            result = "pending";
+            const chunk = chunks;
             setChunks('');
-            let textData = arr.current?.[0];
-            await socket.emit("sendToBackend", { chunk: textData, sourceLanguage: sourceLanguage, targetLanguage: targetLanguage }, (data) => {
-                // let s = (answer + ' ' + data);
-                let s = data;
-                let outputString = s.replace(/'/g, '');
-                setanswer(outputString);
-                result = null
+            const textData = arr.current[0];
+            console.log("Sending data to backend:", textData); // Added log
+            await socket.emit("sendToBackend", { chunk: textData, sourceLanguage, targetLanguage }, (data) => {
+                console.log("Received data from backend:", data); // Added log
+                setanswer(data.replace(/'/g, ''));
+                result = null;
                 arr.current.shift();
-                solveAnswer()
+                solveAnswer();
             });
         }
     }
 
-    // useEffect(() => {
-    //     console.log("transcript is ", transcript)
-    //     if (transcript?.length !== 0 && numberOfWords(transcript) > 1) arr.current.push(transcript)
-    //     solveAnswer()
-    // }, [interimTranscript?.length === 0]);
-
     useEffect(() => {
-        let interval = setTimeout(() => {
-            console.log("transcript is ", transcript)
-            if (transcript?.length !== 0 && numberOfWords(transcript) > 1) {
-                arr.current.push(transcript)
+        const interval = setTimeout(() => {
+            if (transcript.length !== 0 && numberOfWords(transcript) > 1) {
+                arr.current.push(transcript);
             }
-            solveAnswer()
-        }, 500)
-        return (() => {
-            return clearInterval(interval)
-        })
-    }, [transcript])
-
-    //socket and some set data operation 
+            solveAnswer();
+        }, 500);
+        return () => clearInterval(interval);
+    }, [transcript]);
 
     const initializeSocket = useCallback(() => {
         if (!socket) {
-            socket = io('http://localhost:2000', {
+            socket = io('https://speech-to-text-ijrl.vercel.app', {
                 transports: ['websocket'],
                 reconnectionAttempts: 5,
                 reconnectionDelay: 1000,
@@ -103,6 +82,9 @@ const Tast1 = () => {
             });
             socket.on('disconnect', () => {
                 console.log("Disconnected from backend");
+            });
+            socket.on('connect_error', (error) => {
+                console.error("Connection error:", error);
             });
         }
     }, []);
@@ -122,37 +104,14 @@ const Tast1 = () => {
     }
 
     const sourcelanguageChange = (e) => {
-        let value = e.target.value
-        let s = `${value}-IN`;
-        setLanguage(s);
-        if (value === "en") {
-            setsourceLanguage('English')
-        }
-        else if (value === "hi") {
-            setsourceLanguage('Hindi')
-        } else if (value === "bn") {
-            setsourceLanguage('Bengali')
-        }
-        else if (value === "te") {
-            setsourceLanguage('Telegu')
-        }
-        // startListening()
+        const value = e.target.value;
+        setLanguage(`${value}-IN`);
+        setsourceLanguage(value === 'en' ? 'English' : value === 'hi' ? 'Hindi' : 'Bengali');
     }
 
     const targetlanguageChange = (e) => {
-        let value = e.target.value
-        if (value === "en") {
-            settargetLanguage('English')
-        }
-        else if (value === "hi") {
-            settargetLanguage('Hindi')
-        } else if (value === "bn") {
-            settargetLanguage('Bengali')
-        }
-        else if (value === "te") {
-            settargetLanguage('Telegu')
-        }
-        // startListening()
+        const value = e.target.value;
+        settargetLanguage(value === 'en' ? 'English' : value === 'hi' ? 'Hindi' : 'Bengali');
     }
 
     const clear = () => {
@@ -166,44 +125,33 @@ const Tast1 = () => {
     }
 
     return (
-        <>
-            <div className="container">
-                <h2>Speech to Text Converter</h2>
-                <div className="btn-style">
-                    {
-                        button === "Start" ?
-                            <button onClick={startListening}>{button}</button>
-                            : <button onClick={stopListening}>{button}</button>
-                    }
-                    <button onClick={clear}>clear</button>
+        <div className="container">
+            <h2>Speech to Text Converter</h2>
+            <div className="btn-style">
+                <button onClick={button === "Start" ? startListening : stopListening}>{button}</button>
+                <button onClick={clear}>Clear</button>
+            </div>
+            <div className="selectform">
+                <div>
+                    <label>Source Language</label>
+                    <select onChange={sourcelanguageChange} disabled={dissableSourceOption}>
+                        <option value='en'>English</option>
+                        <option value='hi'>Hindi</option>
+                        <option value='bn'>Bengali</option>
+                    </select>
                 </div>
-                <div className="selectform">
-                    <div>
-                        <label>Source Langauge</label>
-                        <select onChange={sourcelanguageChange} disabled={dissableSourceOption}>
-                            <option value='en'>English</option>
-                            <option value='hi'>Hindi</option>
-                            <option value='bn'>Bengali</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Target Langauge</label>
-                        <select onChange={targetlanguageChange} disabled={dissableTargetOption}>
-                            <option value='hi'>Hindi</option>
-                            <option value='bn'>Bengali</option>
-                            <option value='en'>English</option>
-                            {/* <option value='te'>Telegu</option> */}
-                        </select>
-                    </div>
-                </div>
-                <div className="main-content">
-                    {transcript}
-                </div>
-                <div className="main-content">
-                    {answer}
+                <div>
+                    <label>Target Language</label>
+                    <select onChange={targetlanguageChange} disabled={dissableTargetOption}>
+                        <option value='en'>English</option>
+                        <option value='hi'>Hindi</option>
+                        <option value='bn'>Bengali</option>
+                    </select>
                 </div>
             </div>
-        </>
+            <div className="main-content">{transcript}</div>
+            <div className="main-content">{answer}</div>
+        </div>
     );
 };
 
