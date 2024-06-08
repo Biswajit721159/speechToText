@@ -19,37 +19,37 @@ app.use(cors({
 
 const translate = require('translate-google');
 
-io.on('connection', (socket) => {
-  console.log('Socket connected:', socket.id);
+// io.on('connection', (socket) => {
+//   console.log('Socket connected:', socket.id);
 
-  socket.on('sendToBackend', async ({ chunk, sourceLanguage, targetLanguage }, callback) => {
-    try {
-      console.log('Chunk from frontend:', chunk);
-      console.log('Source language:', sourceLanguage);
-      console.log('Target language:', targetLanguage);
+//   socket.on('sendToBackend', async ({ chunk, sourceLanguage, targetLanguage }, callback) => {
+//     try {
+//       console.log('Chunk from frontend:', chunk);
+//       console.log('Source language:', sourceLanguage);
+//       console.log('Target language:', targetLanguage);
 
-      if (sourceLanguage === targetLanguage) {
-        callback(chunk);
-        return;
-      }
-      if (numberOfWords(chunk) <= 1) {
-        callback(chunk);
-        return;
-      }
+//       if (sourceLanguage === targetLanguage) {
+//         callback(chunk);
+//         return;
+//       }
+//       if (numberOfWords(chunk) <= 1) {
+//         callback(chunk);
+//         return;
+//       }
 
-      const translatedText = await translate(chunk, { to: targetLanguage });
-      console.log('Translated text:', translatedText);
-      callback(translatedText);
-    } catch (error) {
-      console.error('Translation error:', error);
-      callback('Not possible to convert!');
-    }
-  });
+//       const translatedText = await translate(chunk, { to: targetLanguage });
+//       console.log('Translated text:', translatedText);
+//       callback(translatedText);
+//     } catch (error) {
+//       console.error('Translation error:', error);
+//       callback('Not possible to convert!');
+//     }
+//   });
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
-});
+//   socket.on('disconnect', () => {
+//     console.log('Client disconnected:', socket.id);
+//   });
+// });
 
 function numberOfWords(str) {
   const words = str.match(/\S+/g);
