@@ -20,6 +20,47 @@ app.use(cors({
 }));
 
 
+
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id);
+
+  socket.on('sendToBackend', async ({ chunk, sourceLanguage, targetLanguage }, callback) => {
+    try {
+      console.log('Chunk from frontend:', chunk);
+      console.log('Source language:', sourceLanguage);
+      console.log('Target language:', targetLanguage);
+
+      if (sourceLanguage === targetLanguage) {
+        callback(chunk);
+        return;
+      }
+      if (numberOfWords(chunk) <= 1) {
+        callback(chunk);
+        return;
+      }
+
+      const translatedText = await translate(chunk, { to: targetLanguage });
+      console.log('Translated text:', translatedText);
+      callback(translatedText);
+    } catch (error) {
+      console.error('Translation error:', error);
+      callback('Not possible to convert!');
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
+function numberOfWords(str) {
+  const words = str.match(/\S+/g);
+  return words ? words.length : 0;
+}
+
+
+
+
 app.get("/", async (req, res) => {
   res.send("server is running ...")
 })
