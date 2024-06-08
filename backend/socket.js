@@ -3,10 +3,11 @@ const http = require('http');
 const socketIO = require('socket.io');
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server, {
-  transports: ['websocket', 'polling'],
-  path: '/api/socket.io' // Ensure this matches the path in your frontend code
-});
+
+// const io = socketIO(server, {
+//   transports: ['websocket', 'polling'],
+//   path: '/api/socket.io' 
+// });
 const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
