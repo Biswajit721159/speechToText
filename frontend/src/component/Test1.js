@@ -74,7 +74,7 @@ const Tast1 = () => {
 
     const initializeSocket = useCallback(() => {
         if (!socket) {
-            socket = io('https://70c8-110-235-236-237.ngrok-free.app', {
+            socket = io('https://speech-to-textbackend.vercel.app', {
                 transports: ['websocket', 'polling'],
                 path: '/api/socket.io'  // Ensure this matches the path in your backend
             });
