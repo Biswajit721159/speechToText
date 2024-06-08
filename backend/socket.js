@@ -1,23 +1,23 @@
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const translate = require('translate-google');
+
+dotenv.config();
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
-  transports: ['websocket', 'polling'],
-  path: '/api/socket.io' // Ensure this matches the path in your frontend code
+  transports: ['websocket', 'polling']
 });
-const cors = require('cors');
-const dotenv = require('dotenv');
-dotenv.config();
 
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type'],
 }));
-
-const translate = require('translate-google');
 
 io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
