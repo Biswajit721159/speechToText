@@ -62,23 +62,23 @@ app.use(cors({
 
 app.post("/", async (req, res) => {
   try {
-    let chunk = req.body.chunk
+    let chunk = req.body.chunk;
     let targetLanguage = req.body.targetLanguage;
     console.log('Chunk from frontend:', chunk, targetLanguage);
     const translatedText = await translate(chunk, { to: targetLanguage });
     console.log('Translated text:', translatedText);
-    res.send({ text: translatedText })
+    res.send({ text: translatedText });
   } catch {
-    res.send("The Application is deploy in vercel which is free");
+    res.send("The Application is deploy in vercel which is free. many request is not accepted.");
   }
 })
 
 
 app.get("/", async (req, res) => {
-  res.send("server is running ...")
+  res.send("server is running ...");
 })
 
-const PORT = 2000;
+const PORT = 4000;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

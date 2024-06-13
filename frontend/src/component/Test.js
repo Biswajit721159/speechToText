@@ -1,11 +1,14 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import nlp from 'compromise';
 import io from 'socket.io-client';
-import './Test1.css';
 let socket;
 let result = null;
 
 const Tast = () => {
+
+    let [soluton, setsolution] = useState('');
+    let [previousInterimMessage, setpreviousInterimMessage] = useState('');
     const [language, setLanguage] = useState('en-IN');
     const [sourceLanguage, setsourceLanguage] = useState('English');
     const [targetLanguage, settargetLanguage] = useState('Hindi');
@@ -15,6 +18,7 @@ const Tast = () => {
 
     let { finalTranscript, transcript, interimTranscript, browserSupportsSpeechRecognition, resetTranscript }
         = useSpeechRecognition({ continuous: true, language: language });
+
 
     const [chunks, setChunks] = useState('');
     let [answer, setanswer] = useState('');
@@ -37,11 +41,37 @@ const Tast = () => {
         setbutton("Start");
     };
 
+    const handlePunctuate = (inputText) => {
+        const doc = nlp(inputText);
+        const sentences = doc.sentences().out('array');
+        const punctuatedText = sentences.join('. ') + (sentences.length ? '.' : '');
+        return punctuatedText;
+    };
+
     useEffect(() => {
         if (interimTranscript) {
             setChunks(interimTranscript);
         }
     }, [interimTranscript]);
+
+    useEffect(() => {
+        if (interimTranscript?.length === 0) {
+            if (previousInterimMessage?.length !== 0) {
+                if (soluton?.length === 0) {
+                    let s = handlePunctuate(previousInterimMessage);
+                    setsolution(s);
+                    // setsolution(previousInterimMessage + '. ');
+                } else {
+                    let s = handlePunctuate(soluton + previousInterimMessage);
+                    setsolution(s);
+                    // setsolution(soluton + previousInterimMessage + '. ');
+                }
+            }
+            setpreviousInterimMessage('');
+        } else {
+            setpreviousInterimMessage(interimTranscript)
+        }
+    }, [interimTranscript])
 
     async function solveAnswer() {
         if (result === null && arr.current?.length !== 0) {
@@ -49,7 +79,9 @@ const Tast = () => {
             let chunk = chunks;
             setChunks('');
             let textData = arr.current?.[0];
-            fetch('https://speech-to-textbackend.vercel.app/', {
+            // let api = "http://localhost:4000/"
+            let api = "https://speech-to-textbackend.vercel.app/"
+            fetch(`${api}`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -76,8 +108,9 @@ const Tast = () => {
 
     useEffect(() => {
         let interval = setTimeout(() => {
-            if (transcript?.length !== 0 && numberOfWords(transcript) > 1) {
-                arr.current.push(transcript);
+            let paragraph = soluton + ' ' + previousInterimMessage;
+            if (paragraph?.length !== 0 && numberOfWords(paragraph) > 1) {
+                arr.current.push(paragraph);
             }
             solveAnswer();
         }, 500);
@@ -181,7 +214,7 @@ const Tast = () => {
                     </select>
                 </div>
             </div>
-            <div className="main-content">{transcript}</div>
+            <div className="main-content">{soluton + ' ' + previousInterimMessage}</div>
             <div className="main-content">{answer}</div>
         </div>
     );

@@ -74,9 +74,9 @@ const Tast1 = () => {
 
     const initializeSocket = useCallback(() => {
         if (!socket) {
-            socket = io('http://23.23.25.176:2000', {
+            socket = io('http://localhost:2000', {
                 transports: ['websocket', 'polling'],
-                path: '/api/socket.io'  // Ensure this matches the path in your backend
+                // path: '/api/socket.io'  
             });
             socket.on('connect', () => {
                 console.log("Connected to backend");

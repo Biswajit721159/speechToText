@@ -5,13 +5,16 @@ import Test from './component/Test'
 import Test1 from './component/Test1'
 import Test2 from './component/Test2'
 import Test4 from './component/Test4'
+import Test3 from './component/Test3'
 function App() {
   return (
     <>
       {/* <Test1/> */}
+      {/* <Test2 /> */}
       <Test />
       {/* <SpeechToText /> */}
       {/* <Test2 /> */}
+      {/* <Test3/> */}
       {/* <Test4 /> */}
     </>
   );
