@@ -1,18 +1,13 @@
 const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
-// const socketIO = require('socket.io');
 const app = express();
 app.use(bodyParser.json());
 const server = http.createServer(app);
 const translate = require('translate-google');
-// const io = socketIO(server, {
-//   transports: ['websocket', 'polling'],
-//   path: '/api/socket.io'
-// });
-
-const cors = require('cors');
 const dotenv = require('dotenv');
+const cors = require('cors');
+let axios = require('axios');
 dotenv.config();
 
 app.use(cors({
@@ -22,63 +17,65 @@ app.use(cors({
 }));
 
 
+const fetchDataForPunctution = async (text) => {
+  try {
+    let apikey = process.env.REACT_APP_ChatGptApiKey;
+    let api = process.env.chat_url;
+    const payload = {
+      "model": "gpt-4",
+      "messages": [
+        {
+          "role": "system",
+          "content": `You are given a sentence. Now you need to punctuate that sentence and return it.
+                   If it is not possible to punctuate, return the original string.`
+        },
+        {
+          "role": "user",
+          "content": text
+        }
+      ],
+      "temperature": 0
+    };
 
-// io.on('connection', (socket) => {
-//   console.log('Socket connected:', socket.id);
+    const headers = {
+      'Authorization': `Bearer ${apikey}`,
+      'Content-Type': 'application/json',
+    };
 
-//   socket.on('sendToBackend', async ({ chunk, sourceLanguage, targetLanguage }, callback) => {
-//     try {
-//       console.log('Chunk from frontend:', chunk);
-//       console.log('Source language:', sourceLanguage);
-//       console.log('Target language:', targetLanguage);
+    const finalResponse = await axios.post(api, payload, { headers });
+    let response_data = finalResponse?.data?.choices?.[0]?.message?.content;
+    return response_data
+  } catch (error) {
+    return error?.message
+  }
+};
 
-//       if (sourceLanguage === targetLanguage) {
-//         callback(chunk);
-//         return;
-//       }
-//       if (numberOfWords(chunk) <= 1) {
-//         callback(chunk);
-//         return;
-//       }
-
-//       const translatedText = await translate(chunk, { to: targetLanguage });
-//       console.log('Translated text:', translatedText);
-//       callback(translatedText);
-//     } catch (error) {
-//       console.error('Translation error:', error);
-//       callback('Not possible to convert!');
-//     }
-//   });
-
-//   socket.on('disconnect', () => {
-//     console.log('Client disconnected:', socket.id);
-//   });
-// });
-
-// function numberOfWords(str) {
-//   const words = str.match(/\S+/g);
-//   return words ? words.length : 0;
-// }
+const fetchDataForTranslate = async (text, targetLanguage) => {
+  try {
+    const translatedText = await translate(text, { to: targetLanguage });
+    return translatedText
+  } catch (error) {
+    return error?.message
+  }
+};
 
 app.post("/", async (req, res) => {
   try {
-    let chunk = req.body.chunk;
-    let targetLanguage = req.body.targetLanguage;
-    console.log('Chunk from frontend:', chunk, targetLanguage);
-    const translatedText = await translate(chunk, { to: targetLanguage });
-    console.log('Translated text:', translatedText);
-    res.send({ text: translatedText });
+    let { chunk, targetLanguage } = req.body;
+    let PunctutionText = await fetchDataForPunctution(chunk);
+    let translatedText = await fetchDataForTranslate(PunctutionText, targetLanguage);
+    res.send({ 'translatedText': translatedText, 'PunctutionText': PunctutionText });
   } catch {
     res.send("The Application is deploy in vercel which is free. many request is not accepted.");
   }
 })
-
 
 app.get("/", async (req, res) => {
   res.send("server is running ...");
 })
 
 const PORT = 4000;
+
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

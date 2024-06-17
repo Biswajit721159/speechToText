@@ -40,6 +40,13 @@ p {
   margin-bottom: 100px;
 }
 
+.main {
+  display: flex;
+  justify-content: space-evenly;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
 .main-content {
   width: 700px;
   min-height: 200px;
@@ -96,6 +103,7 @@ button:hover {
   display: flex;
   justify-content: space-between;
 }
+
 /* 
 @media screen and (max-width: 768px) {
   .container {

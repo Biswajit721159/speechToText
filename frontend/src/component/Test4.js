@@ -1,82 +1,57 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-function SpeechToText() {
-    const [isRecording, setIsRecording] = useState(false);
-    // const [chunks, setChunks] = useState([]);
-    const audioRef = useRef([]);
+const PunctuationFixer = () => {
+  const [inputText, setInputText] = useState('');
+  const [correctedText, setCorrectedText] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const mediaRecorderRef = useRef(null);
+  const handleChange = (e) => {
+    setInputText(e.target.value);
+  };
 
-    useEffect(() => {
-        console.log("isRecording ", isRecording)
-        if (!mediaRecorderRef.current && isRecording) {
-            const constraints = { audio: true };
-            navigator.mediaDevices
-                .getUserMedia(constraints)
-                .then(mediaStream => {
-                    const recorder = new MediaRecorder(mediaStream);
-                    recorder.ondataavailable = event => {
-                        const blob = event.data;
-                        audioRef.current.push(blob);
-                        console.log("blob is ", blob);
-                    };
-                    recorder.start(2000);
-                });
-        }
-    }, [isRecording]);
+  const handlePunctuationFix = async () => {
+    setLoading(true);
 
+    const apiToken = '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';  // Replace with your Hugging Face API token
+    const apiUrl = 'https://api-inference.huggingface.co/models/oliverguhr/fullstop-punctuation-multilang-large';
 
-    const startRecording = () => {
-        // if (!isRecording && mediaRecorderRef.current) {
-        setIsRecording(true);
-        mediaRecorderRef?.current?.start(100);
-        const intervalId = setInterval(sendChunksToServer, 3000);
-        return () => clearInterval(intervalId);
-        // }
-    };
+    try {
+      const response = await axios.post(apiUrl, {
+        inputs: inputText,
+      }, {
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+        },
+      });
 
-    const stopRecording = () => {
-        // if (isRecording && mediaRecorderRef.current) {
-        setIsRecording(false);
-        mediaRecorderRef?.current?.stop();
-        // }
-    };
+      const result = response.data[0].generated_text;
+      setCorrectedText(result);
+    } catch (error) {
+      console.error('Error punctuating text:', error);
+    }
 
-    const sendChunksToServer = () => { }
+    setLoading(false);
+  };
 
-    const play = () => {
-        console.log("audioRef ", audioRef)
-        if (isRecording) {
-            stopRecording()
-        }
+  return (
+    <div>
+      <h2>Text Punctuation Corrector</h2>
+      <textarea
+        value={inputText}
+        onChange={handleChange}
+        rows="4"
+        cols="50"
+        placeholder="Enter text without proper punctuation..."
+      ></textarea>
+      <br />
+      <button onClick={handlePunctuationFix} disabled={loading}>
+        {loading ? 'Fixing...' : 'Fix Punctuation'}
+      </button>
+      <h3>Corrected Text:</h3>
+      <p>{correctedText}</p>
+    </div>
+  );
+};
 
-        let i = 0;
-        const interval = setInterval(() => {
-            const aud = audioRef.current?.[i];
-            if (aud) {
-                const tmp = new Audio(URL.createObjectURL(aud));
-                tmp.play();
-                if (audioRef.current?.[i + 1]) {
-                    i++;
-                } else {
-                    clearInterval(interval);
-                }
-            }
-        }, 5000);
-    };
-
-    return (
-        <div>
-            <button onClick={startRecording} disabled={isRecording}>
-                Start Recording
-            </button>
-            <button onClick={stopRecording} disabled={!isRecording}>
-                Stop Recording
-            </button>
-            <button onClick={play}>play song</button>
-            {isRecording && <p>Recording...</p>}
-        </div>
-    );
-}
-
-export default SpeechToText;
+export default PunctuationFixer;
