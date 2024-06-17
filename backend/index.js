@@ -64,6 +64,8 @@ app.post("/", async (req, res) => {
     let { chunk, targetLanguage } = req.body;
     let PunctutionText = await fetchDataForPunctution(chunk);
     let translatedText = await fetchDataForTranslate(PunctutionText, targetLanguage);
+    console.log("PunctutionText ", PunctutionText);
+    console.log("translatedText", translatedText);
     res.send({ 'translatedText': translatedText, 'PunctutionText': PunctutionText });
   } catch {
     res.send("The Application is deploy in vercel which is free. many request is not accepted.");
