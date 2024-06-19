@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
-import nlp from 'compromise';
 let result = null;
 
 const Tast = () => {
