@@ -16,7 +16,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type'],
 }));
 
-
 const fetchDataForPunctution = async (text) => {
   try {
     let apikey = process.env.REACT_APP_ChatGptApiKey;

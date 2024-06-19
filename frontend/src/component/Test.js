@@ -19,32 +19,12 @@ const Tast = () => {
     let [answer, setanswer] = useState('');
     const arr = useRef([]);
 
-
-    // useEffect(() => {
-    //     if (interimTranscript?.length === 0) {
-    //         if (previousInterimMessage?.length !== 0) {
-    //             if (soluton?.length === 0) {
-    //                 let s = handlePunctuate(previousInterimMessage);
-    //                 setsolution(s);
-    //                 // setsolution(previousInterimMessage + '. ');
-    //             } else {
-    //                 let s = handlePunctuate(soluton + previousInterimMessage);
-    //                 setsolution(s);
-    //                 // setsolution(soluton + previousInterimMessage + '. ');
-    //             }
-    //         }
-    //         setpreviousInterimMessage('');
-    //     } else {
-    //         setpreviousInterimMessage(interimTranscript)
-    //     }
-    // }, [interimTranscript])
-
     async function solveAnswer() {
         if (result === null && arr.current?.length !== 0) {
             result = "pending";
             let textData = arr.current?.[0];
-            // let api = "http://localhost:4000/"
-            let api = "https://speech-to-textbackend.vercel.app/"
+            let api = "http://localhost:4000/"
+            // let api = "https://speech-to-textbackend.vercel.app/"
             fetch(`${api}`, {
                 method: 'POST',
                 headers: {
@@ -153,41 +133,55 @@ const Tast = () => {
         setdissableTargetOption(false);
     };
 
+    const refreshPage = () => {
+        window.location.reload();
+    };
+
     return (
-        <div className="container">
-            <h2>Speech to Text Converter</h2>
-            <div className="btn-style">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6">Speech to Text Converter</h2>
+            <div className="flex space-x-4 mb-6">
                 {button === "Start" ? (
-                    <button onClick={startListening}>{button}</button>
+                    <button onClick={startListening} className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">{button}</button>
                 ) : (
-                    <button onClick={stopListening}>{button}</button>
+                    <button onClick={stopListening} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">{button}</button>
                 )}
-                {/* <button onClick={clear}>clear</button> */}
+                <button onClick={refreshPage} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Clear</button>
             </div>
-            <div className="selectform">
+            <div className="flex flex-col md:flex-row space-x-0 md:space-x-8 space-y-4 md:space-y-0 mb-6">
                 <div>
-                    <label>Source Language</label>
-                    <select onChange={sourcelanguageChange} disabled={dissableSourceOption}>
+                    <label className="block mb-2 text-sm font-medium text-gray-700">Source Language</label>
+                    <select onChange={sourcelanguageChange} disabled={dissableSourceOption} className="block w-full p-2 border border-gray-300 rounded">
                         <option value='en'>English</option>
                         <option value='hi'>Hindi</option>
                         <option value='bn'>Bengali</option>
+                        <option value='te'>Telegu</option>
                     </select>
                 </div>
                 <div>
-                    <label>Target Language</label>
-                    <select onChange={targetlanguageChange} disabled={dissableTargetOption}>
+                    <label className="block mb-2 text-sm font-medium text-gray-700">Target Language</label>
+                    <select onChange={targetlanguageChange} disabled={dissableTargetOption} className="block w-full p-2 border border-gray-300 rounded">
                         <option value='hi'>Hindi</option>
                         <option value='bn'>Bengali</option>
                         <option value='en'>English</option>
                     </select>
                 </div>
             </div>
-            <div className='main'>
-                <div className="main-content"><span style={{ color: 'green' }}>Your speaking Text - </span>{transcript}</div>
-                <div className="main-content"><span style={{ color: 'green' }}>Your speaking with Punctution Text - </span> {soluton}</div>
-                <div className="main-content"><span style={{ color: 'green' }}>Your translated with Punctution Text - </span>{answer}</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-6 bg-white rounded-lg shadow-md">
+                    <p className="text-green-600 font-semibold">Your speaking Text:</p>
+                    <p className="mt-2">{transcript}</p>
+                </div>
+                <div className="p-6 bg-white rounded-lg shadow-md">
+                    <p className="text-green-600 font-semibold">Your speaking with Punctuation Text:</p>
+                    <p className="mt-2">{soluton}</p>
+                </div>
+                <div className="p-6 bg-white rounded-lg shadow-md">
+                    <p className="text-green-600 font-semibold">Your translated with Punctuation Text:</p>
+                    <p className="mt-2">{answer}</p>
+                </div>
             </div>
-        </div >
+        </div>
     );
 };
 
