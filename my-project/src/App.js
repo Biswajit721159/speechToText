@@ -18,6 +18,7 @@ const Tast = () => {
   let [answer, setanswer] = useState('');
   const arr = useRef([]);
 
+
   async function solveAnswer() {
     if (result === null && arr.current?.length !== 0) {
       result = "pending";
@@ -156,7 +157,7 @@ const Tast = () => {
           </select>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{width:'100%',padding:'40px'}}>
         <div className="p-6 bg-white rounded-lg shadow-md"> {/* 50% width on md screens and below */}
           <p className="text-green-600 font-semibold">Your speaking Text:</p>
           <div className="w-full  rounded-lg p-4 overflow-auto h-auto"> {/* Full width and auto height */}
