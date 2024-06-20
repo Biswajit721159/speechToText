@@ -22,8 +22,13 @@ const Tast = () => {
   async function solveAnswer() {
     if (result === null && arr.current?.length !== 0) {
       result = "pending";
+      let length = arr.current?.length;
+      if (length >= 2) {
+        arr.current.splice(0, length - 1);
+      }
       let textData = arr.current?.[0];
       let api = process.env.REACT_APP_API
+
       fetch(`${api}`, {
         method: 'POST',
         headers: {
@@ -56,15 +61,15 @@ const Tast = () => {
   }
 
   useEffect(() => {
-    let interval = setTimeout(() => {
-      if (numberOfWords(transcript) > 1) {
-        arr.current.push(transcript);
-      }
+    // let interval = setTimeout(() => {
+    if (numberOfWords(transcript) > 1) {
+      arr.current.push(transcript);
       solveAnswer();
-    }, 500);
-    return () => {
-      clearInterval(interval);
-    };
+    }
+    // }, 200);
+    // return () => {
+    //   clearInterval(interval);
+    // };
   }, [transcript]);
 
   if (!browserSupportsSpeechRecognition) {
@@ -157,7 +162,7 @@ const Tast = () => {
           </select>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{width:'100%',padding:'40px'}}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ width: '100%', padding: '40px' }}>
         <div className="p-6 bg-white rounded-lg shadow-md"> {/* 50% width on md screens and below */}
           <p className="text-green-600 font-semibold">Your speaking Text:</p>
           <div className="w-full  rounded-lg p-4 overflow-auto h-auto"> {/* Full width and auto height */}
